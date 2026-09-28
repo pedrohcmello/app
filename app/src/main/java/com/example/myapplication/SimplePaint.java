@@ -24,6 +24,7 @@ public class SimplePaint extends View {
         paint.setStrokeWidth(5);
         paint.setColor(0xFF000000);
         paint.setStyle(Paint.Style.STROKE);
+        paint.setAntiAlias(true);
     }
 
 
@@ -37,10 +38,23 @@ public class SimplePaint extends View {
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();
         float y = event.getY();
+        //path.lineTo(x,y);
 
-        path.lineTo(x,y);
+
+        switch(event.getAction()){
+            case MotionEvent.ACTION_DOWN:
+                path.moveTo(x,y);
+                return true;
+            case MotionEvent.ACTION_MOVE:
+                path.lineTo(x,y);
+            case MotionEvent.ACTION_UP:
+                break;
+            default:
+                return false;
+        }
         invalidate();
-        return super.onTouchEvent(event);
+        return  true;
+       // return super.onTouchEvent(event);
     }
     //path
 }
