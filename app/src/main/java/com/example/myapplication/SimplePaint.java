@@ -11,27 +11,50 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.ArrayList;
+
 //Variável/parÂmetro  Context permite acessar uma biblioteca android,(ok),
 // (e suponho que também informa onde estamos chamando e em qual classe).
 public class SimplePaint extends View {
     //mapa, caminho de pontos : PATH
-    Path path;
-    Paint paint;
+    Path mpath;
+    Paint mpaint;
+
+    ArrayList<Paint> paintList;
+    ArrayList<Path> pathList;
+
     public SimplePaint(Context context, @Nullable AttributeSet attrs){
         super(context, attrs);
-        path = new Path();
-        paint = new Paint();
-        paint.setStrokeWidth(5);
-        paint.setColor(0xFF000000);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setAntiAlias(true);
+        mpath = new Path();
+        mpaint = new Paint();
+        mpaint.setStrokeWidth(5);
+        mpaint.setColor(0xFF000000);
+        mpaint.setStyle(Paint.Style.STROKE);
+        mpaint.setAntiAlias(true);
+
+        paintList=new ArrayList<>();
+        pathList=new ArrayList<>();
     }
+
+
+    //simplepaint
+    //path paint,  para não colorir defina que cada toque é um PATH
+
+    //Como isso vai ocorrer ?
+    //Resposta : ATRAVÉS de um ARRAYLIST  de PATH
+
+
+
+
 
 
     @Override
     protected void onDraw(@NonNull Canvas canvas) {
         super.onDraw(canvas);
-        canvas.drawPath(path,paint);
+        for(int i = 0; i<paintList.size();i++){
+            canvas.drawPath(pathList.get(i), paintList.get(i));
+        }
+   canvas.drawPath(mpath, mpaint);
     }
 
     @Override
@@ -43,10 +66,10 @@ public class SimplePaint extends View {
 
         switch(event.getAction()){
             case MotionEvent.ACTION_DOWN:
-                path.moveTo(x,y);
+                mpath.moveTo(x,y);
                 return true;
             case MotionEvent.ACTION_MOVE:
-                path.lineTo(x,y);
+                mpath.lineTo(x,y);
             case MotionEvent.ACTION_UP:
                 break;
             default:
@@ -55,6 +78,17 @@ public class SimplePaint extends View {
         invalidate();
         return  true;
        // return super.onTouchEvent(event);
+    }
+
+    public void setColor(int color) {
+        //CRIAR NOVA CAMADA(layer)
+        paintList.add(mpaint);
+        pathList.add(mpath);
+        mpath = new Path();
+        mpaint = new Paint(mpaint);
+
+        mpaint.setColor(color);
+        invalidate();
     }
     //path
 }
