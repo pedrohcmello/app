@@ -20,7 +20,7 @@ import java.util.List;
 
 public class AppAdapter  extends ArrayAdapter<ApplicationInfo> {
 
-    ListView listView = findViewById(R.id.listview_apps);
+    ListView listView = getView(R.id.listview_apps);
     public AppAdapter(MainActivity mainActivity, int item_lista, List<ApplicationInfo> packageInfoList) {
             super(mainActivity, item_lista, packageInfoList);
 

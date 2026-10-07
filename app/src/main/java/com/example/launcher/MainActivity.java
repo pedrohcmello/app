@@ -72,12 +72,14 @@ AdapterApps adapterApps = new AdapterApps(this, R.layout.item_lista,installedApp
   ATÉ AQUI    */
 
 
+    //O itemClick se refere a uim item da lista, correto ? Parece uma lista mas eé uma exibição da coletânea atual de pacotes instalados/ou funcionalidades no PackageManager.
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         ApplicationInfo applicationInfo = (ApplicationInfo) parent.getItemAtPosition(position);
         String packageName = applicationInfo.packageName;
         Toast.makeText(MainActivity.this, "", Toast.LENGTH_SHORT).show();
 
+        //A linha 83 cria um Intent com a ação ACTION_MAIN, que é usada para filtrar aplicativos que tenham uma atividade principal ?
         Intent intent = packageManager.getLaunchIntentForPackage(packageName);
         if (intent != null) {
             startActivity(intent);
@@ -86,11 +88,6 @@ AdapterApps adapterApps = new AdapterApps(this, R.layout.item_lista,installedApp
         }
     }
 };
-
-
-
-
-
     //installedApps = new ArrayList<>();
 
 
