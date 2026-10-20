@@ -1,7 +1,9 @@
 package com.example.aula7;
 
+import android.Manifest;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.hardware.Sensor;
@@ -9,6 +11,8 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorListener;
 import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.widget.TextView;
 
@@ -18,12 +22,16 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import org.jspecify.annotations.NonNull;
+import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.Marker;
+
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener {
-    TextView tv;
-    SQLiteDatabase database;
-    int contador = 0;
+public class MainActivity extends AppCompatActivity {
+    LocationManager locationManager;
+    PackageManager PackagerManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,61 +43,59 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             return insets;
         });
 
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+//obrigatório essa linha de baixo
 
-        SensorManager sm = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        Sensor ac = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        org.osmdroid.config.Configuration.getInstance().setUserAgentValue(getPackageName());
 
-//sensorEvent
-        sm.registerListener(this,ac, SensorManager.SENSOR_DELAY_NORMAL);
-        //Se eu colocasse  this, eu informaria que a classe se implementa.
+        TextView textView = findViewById(R.id.textView);
+        MapView mapView=findViewById(R.id.mapview);
 
+        // Verifica se a permissão já foi concedida
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackagerManager.PERMISSION_GRANTED) {
+            //Define provider
+            Location l = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            textView.setText(l.getLatitude() + "," + l.getLongitude());
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, location -> {
+                textView.setText(location.getLatitude() + "," + location.getLongitude());
+                //INICIA MAPA
 
-         tv = findViewById(R.id.textView);
-         database = openOrCreateDatabase("bd",MODE_PRIVATE,null);
-         database.execSQL("CREATE TABLE IF NOT EXISTS eventos (id INTEGER PRIMARY KEY AUTOINCREMENT, "+
-                  "value1 REAL(5,2),"  +
-                  "value2 REAL(5,2)," +
-                  "value3  REAL(5,2))");
+                mapView.getController().setZoom(18);
+                mapView.getController().setCenter(
+                        new org.osmdroid.util.GeoPoint(location.getLatitude(), location.getLongitude())
+                );
+                mapView.invalidate();
+
+                //MapPoint Overlay
+                mapView.getOverlays().clear();
+                Marker marker = new org.osmdroid.views.overlay.Marker(mapView);
+                marker.setPosition(new org.osmdroid.util.GeoPoint(location.getLatitude(), location.getLongitude()));
+                mapView.invalidate();
+
+            });
+
+        } else {
+            //SOLICITAR  PERMISSÃO EM TEMPO DE EXECUÇÃO
+
+            requestPermissions(new String[]{
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+            }, 1);
+        }
     }
 
-    public ArrayList<Eventos> getAllEvents(){
-          Cursor cursor = database.rawQuery("SELECT * FROM eventos LIMIT ?", new String[]{"1000"});
-         cursor.moveToFirst();
-
-
-         ArrayList<Eventos> result = new ArrayList<>();
-         while(!cursor.isAfterLast()){
-             new Eventos(cursor.getInt(0),
-                     new Float[]{cursor.getFloat(1),
-                             cursor.getFloat(2),
-                             cursor.getFloat(3)
-                     });
-
-
-
-         }
-          return result;
-    }
-//FALTA IMPORTAR GRÁFICO  PARA VER O RESULTADO DESSE CÓDIGO
 
     @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
-    }
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-         tv.setText(Float.toString(event.values[0])+" : "+
-                    Float.toString(event.values[1])+" : "+
-                    Float.toString(event.values[2]));
-
-        ContentValues contentValues = new ContentValues();
-
-                 contentValues.put("value1",event.values[0]);
-                 contentValues.put("value1",event.values[1]);
-                 contentValues.put("value1",event.values[2]);
-
-                 database.insert("eventos",null,contentValues);
-
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1) {
+            if (grantResults.length > 0 && grantResults[0] == PackagerManager.PERMISSION_GRANTED) {
+                if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackagerManager.PERMISSION_GRANTED) {
+                }
+            }
+        }
     }
 }
+
+
+

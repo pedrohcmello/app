@@ -9,3 +9,4 @@ public class Eventos {
         this.id = id;
     }
 }
+//guardar a localização do usuário no momento
